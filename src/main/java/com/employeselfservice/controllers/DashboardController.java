@@ -25,9 +25,6 @@ import java.util.NoSuchElementException;
 public class DashboardController {
 
     @Autowired
-    private JWTService jwtService;
-
-    @Autowired
     private ApiResponse apiResponse;
 
     @Autowired
@@ -82,7 +79,8 @@ public class DashboardController {
         }
     }
 
-    @GetMapping("/attendance")
+    @GetMapping("/user/attendance")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse> calculateAttendance(@RequestParam long id) {
         try {
             Attendance calculatedAttendance = attendanceService.calculateAttendance(id, LocalDate.now());

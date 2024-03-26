@@ -125,30 +125,33 @@ public class LeaveController {
         }
     }
 
-    @PostMapping("/user/leaves/updateStatus")
+    @PostMapping("/user/manager/leaves/updateStatus")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<ApiResponse> approveLeave(@RequestParam Long id,@RequestParam String status){
+    public ResponseEntity<ApiResponse> approveLeave(@RequestParam int id,@RequestParam String status){
         try {
+            System.out.println("Inside Approve Leave");
             String leaveResponse = leaveService.approveLeave(id,status);
-            if(leaveResponse.equals("Approved")){
-                apiResponse.setSuccess(true);
-                apiResponse.setMessage("Leave Approved");
-                apiResponse.setData(null);
-            }
-            else if(leaveResponse.equals("Rejected")){
-                apiResponse.setSuccess(true);
-                apiResponse.setMessage("Leave Rejected");
-                apiResponse.setData(null);
-            }
-            else if(leaveResponse.equals("Leave_Not_Found")){
-                apiResponse.setSuccess(false);
-                apiResponse.setMessage("No Such Leave Application Found!");
-                apiResponse.setData(null);
-            }
-            else{
-                apiResponse.setSuccess(false);
-                apiResponse.setMessage("Something Went Wrong!");
-                apiResponse.setData(null);
+            switch (leaveResponse) {
+                case "Approved" -> {
+                    apiResponse.setSuccess(true);
+                    apiResponse.setMessage("Leave Approved");
+                    apiResponse.setData(null);
+                }
+                case "Rejected" -> {
+                    apiResponse.setSuccess(true);
+                    apiResponse.setMessage("Leave Rejected");
+                    apiResponse.setData(null);
+                }
+                case "Leave_Not_Found" -> {
+                    apiResponse.setSuccess(false);
+                    apiResponse.setMessage("No Such Leave Application Found!");
+                    apiResponse.setData(null);
+                }
+                default -> {
+                    apiResponse.setSuccess(false);
+                    apiResponse.setMessage("Something Went Wrong!");
+                    apiResponse.setData(null);
+                }
             }
             return ResponseEntity.ok(apiResponse);
         }
