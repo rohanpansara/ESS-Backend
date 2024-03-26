@@ -55,8 +55,9 @@ public class LeaveService {
         return "Leave_Applied";
     }
 
-    public String approveLeave(Long id, String status){
-        Leave leave = leaveRepository.findById(id).get();
+    public String approveLeave(int id, String status){
+        Long leaveId = (long) id;
+        Leave leave = leaveRepository.findById(leaveId).get();
 
         if(leave.getDays()>=1.5){
             leave.setOverflow(leave.getDays()-1.5);

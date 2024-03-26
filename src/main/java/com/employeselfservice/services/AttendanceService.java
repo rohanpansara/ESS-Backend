@@ -10,7 +10,9 @@ import com.employeselfservice.repositories.PunchOutRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,11 +52,10 @@ public class AttendanceService {
     }
 
     private Attendance createNewAttendance(Long employeeId, LocalDate date) {
-        // Fetch PunchIn and PunchOut records for the employee and date from repositories
+        // Fetch PunchIn and PunchOut records for the employee and date
         List<PunchIn> punchIns = punchInRepository.findByEmployeeIdAndDate(employeeId, date);
         List<PunchOut> punchOuts = punchOutRepository.findByEmployeeIdAndDate(employeeId, date);
 
-        // Create an instance of Attendance entity
         Attendance attendance = new Attendance();
         attendance.setEmployee(new Employee(employeeId));
         attendance.setDate(date);
@@ -64,5 +65,36 @@ public class AttendanceService {
 
         // Save the new attendance record
         return attendanceRepository.save(attendance);
+    }
+
+    public List<Attendance> getAttendanceForEmployee(Long employeeId) {
+        List<Attendance> allAttendances = attendanceRepository.findByEmployeeId(employeeId);
+        List<Attendance> filteredAttendances = new ArrayList<>();
+
+        for (Attendance attendance : allAttendances) {
+            String workHoursString = attendance.getWorkHours();
+            if (workHoursString != null) {
+                // Split workHoursString into hours and minutes
+                String[] parts = workHoursString.split(":");
+                if (parts.length == 2) {
+                    int hours = Integer.parseInt(parts[0]);
+                    int minutes = Integer.parseInt(parts[1].substring(0, 2)); // Removing 'pm' or 'am'
+
+                    // Calculate total duration in minutes
+                    long totalMinutes = hours * 60 + minutes;
+
+                    // Convert total duration to Duration object
+                    Duration duration = Duration.ofMinutes(totalMinutes);
+
+                    // Compare with 5 hours and 30 minutes
+                    if (duration.compareTo(Duration.ofHours(4).plusMinutes(30)) > 0) {
+                        // If duration is more than 5 hours and 30 minutes, add attendance to filtered list
+                        filteredAttendances.add(attendance);
+                    }
+                }
+            }
+        }
+
+        return filteredAttendances;
     }
 }
