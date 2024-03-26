@@ -32,9 +32,8 @@ public class Leave {
     @Column(name = "l_id",unique = true)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "e_id")
-    @JsonBackReference(value = "employee")
     private Employee employee;
 
     @Column(name = "l_reason")
