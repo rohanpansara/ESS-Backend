@@ -7,6 +7,9 @@ import com.employeselfservice.repositories.PunchInRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Service
 public class PunchInService {
     @Autowired
@@ -18,4 +21,7 @@ public class PunchInService {
         return "punched";
     }
 
+    public List<PunchIn> getAllPunchInsForEmployeeForToday(Employee employee){
+        return punchInRepository.findByEmployeeIdAndDate(employee.getId(), LocalDate.now());
+    }
 }

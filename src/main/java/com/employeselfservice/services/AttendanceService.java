@@ -12,9 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AttendanceService {
@@ -26,7 +24,13 @@ public class AttendanceService {
     private PunchInRepository punchInRepository;
 
     @Autowired
+    private PunchInService punchInService;
+
+    @Autowired
     private PunchOutRepository punchOutRepository;
+
+    @Autowired
+    private PunchOutService punchOutService;
 
     public Attendance calculateAttendance(Long employeeId, LocalDate date) {
         // Check if an attendance record already exists for the given employee and date
@@ -96,5 +100,16 @@ public class AttendanceService {
         }
 
         return filteredAttendances;
+    }
+
+    public Map<String,Object> getAttendanceMaterial(Employee employee){
+        Map<String, Object> attendanceMaterial = new HashMap<>();
+
+        attendanceMaterial.put("PunchIns",punchInService.getAllPunchInsForEmployeeForToday(employee));
+        attendanceMaterial.put("PunchOuts", punchOutService.getAllPunchOutsForEmployeeForToday(employee));
+        attendanceMaterial.put("FirstPunchIn", punchInRepository.findFirstByEmployeeOrderByPunchInTimeAsc(employee).getPunchInTime());
+        attendanceMaterial.put("LastPunchOut", punchOutRepository.findFirstByEmployeeOrderByPunchOutTimeDesc(employee).getPunchOutTime());
+        attendanceMaterial.put("WorkHours", attendanceRepository.findByEmployeeId(employee.getId()));
+        return attendanceMaterial;
     }
 }

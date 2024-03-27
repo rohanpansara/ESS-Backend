@@ -3,12 +3,14 @@ package com.employeselfservice.services;
 import com.employeselfservice.dao.request.LeaveRequest;
 import com.employeselfservice.models.Employee;
 import com.employeselfservice.models.Leave;
+import com.employeselfservice.models.Notifications;
 import com.employeselfservice.models.Team;
 import com.employeselfservice.repositories.LeaveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -21,6 +23,9 @@ public class LeaveService {
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public List<Leave> findAllLeavesForEmployee(Long employeeId) {
         return leaveRepository.findByEmployeeId(employeeId);
     }
@@ -28,7 +33,7 @@ public class LeaveService {
     public String applyForLeave(LeaveRequest leaveRequest) {
         Employee employee = employeeService.findEmployeeById(leaveRequest.getEmployeeId());
         if (employee == null) {
-            return "USER_NOT_FOUND";
+            return "User_Not_Found";
         }
 
         Leave leave = new Leave();
@@ -59,43 +64,65 @@ public class LeaveService {
         Long leaveId = (long) id;
         Leave leave = leaveRepository.findById(leaveId).get();
 
+
         if(leave.getDays()>=1.5){
             leave.setOverflow(leave.getDays()-1.5);
         }
-        System.out.println("Leave--"+leave);
         if(leave==null){
             return "Leave_Not_Found";
         }
         if(status.equals("APPROVED")){
             double overflow = leaveRepository.getOverflowForLatestApprovedLeaveInMonth(leave.getEmployee().getId(), leave.getMonth());
-            System.out.println("Overflow--"+overflow);
             double newOverflow = overflow;
-            if (leave.getDays() >= 1.5) {
+            if (leave.getDays() >= 1.5 && newOverflow>=0) {
                 newOverflow += leave.getDays() - 1.5; // Add difference if the leave itself exceeds 1.5 days
             }
             if (newOverflow >= 1.5) {
                 leave.setOverflow(newOverflow);
             } else {
-                leave.setOverflow(0); // Reset overflow
+                leave.setOverflow(leave.getDays() - 1.5); // Reset overflow
             }
             leave.setStatus(Leave.LeaveStatus.APPROVED);
             leaveRepository.save(leave);
-            System.out.println("Leave--"+leave);
+
+
+            Notifications notification = new Notifications();
+            notification.setEmployee(leave.getEmployee());
+            notification.setNotification("Your Application For "+leave.getReason()+" Was Approved!");
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setType(Notifications.NotificationType.UPDATES);
+
+            String notificationResponse = notificationService.addNotificationForUser(notification);
+            System.out.println("Notification For Leave Approval - "+notificationResponse.toUpperCase());
+
+
             return "Approved";
         }
         else if(status.equals("REJECTED")){
             leave.setStatus(Leave.LeaveStatus.REJECTED);
             leave.setOverflow(0);
+
+
+            Notifications notification = new Notifications();
+            notification.setEmployee(leave.getEmployee());
+            notification.setNotification("Your Application For "+leave.getReason()+" Was Rejected!");
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setType(Notifications.NotificationType.UPDATES);
+
+            String notificationResponse = notificationService.addNotificationForUser(notification);
+            System.out.println("Notification For Leave Rejection - "+notificationResponse.toUpperCase());
+
+
             return "Rejected";
         }
         return "Error";
     }
 
-    public List<Leave> findAll(){
-        return leaveRepository.findAll();
+    public List<Leave> findAllApprovedLeavesByTeam(Team team){
+        return leaveRepository.findAllApprovedLeavesByTeam(team);
     }
 
-    public List<Leave> findAllByTeam(Team team){
-        return leaveRepository.findAllLeavesByTeam(team);
+    public List<Leave> findAll(){
+        return leaveRepository.findAll();
     }
 }
