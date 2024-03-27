@@ -96,7 +96,7 @@ public class LeaveController {
                         apiResponse.setData(null);
                         System.out.println("Leave Applied Successfully!");
                     }
-                    else if(leaveResponse.equals("USER_NOT_FOUND")){
+                    else if(leaveResponse.equals("User_Not_Found")){
                         apiResponse.setSuccess(false);
                         apiResponse.setMessage("User Not Found");
                         apiResponse.setData(null);
@@ -168,7 +168,7 @@ public class LeaveController {
 
     @GetMapping("/user/manager/leaves/getAllLeave")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<ApiResponse> getAllLeaves(@RequestParam Long id) {
+    public ResponseEntity<ApiResponse> getAllLeavesForManager(@RequestParam Long id) {
         try{
             Team team = employeeService.checkForManager(id);
             System.out.println(team);
@@ -179,7 +179,7 @@ public class LeaveController {
                 return ResponseEntity.badRequest().body(apiResponse);
             }
             else{
-                List<Leave> leaves = leaveService.findAllByTeam(team);
+                List<Leave> leaves = leaveService.findAllApprovedLeavesByTeam(team);
                 System.out.println(leaves);
                 if(!leaves.isEmpty()){
                     apiResponse.setSuccess(true);
