@@ -22,10 +22,11 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
 
     Optional<Leave> findById(Long id);
 
-    @Query("SELECT COALESCE(SUM(l.days), 0) FROM Leave l WHERE l.employee.id = :employeeId AND l.status = 'APPROVED' AND MONTH(l.appliedOn) = :month")
+    @Query("SELECT COALESCE(SUM(l.days), 0) FROM Leave l WHERE l.employee.id = :employeeId AND l.status = 'APPROVED' AND MONTH(l.from) = :month")
     double getOverflowForLatestApprovedLeaveInMonth(@Param("employeeId") Long employeeId, @Param("month") int month);
 
-    @Query("SELECT l FROM Leave l WHERE l.employee.team = :team")
-    List<Leave> findAllLeavesByTeam(@Param("team") Team team);
+    @Query("SELECT l FROM Leave l WHERE l.employee.team = :team AND l.status = 'PENDING'")
+    List<Leave> findAllApprovedLeavesByTeam(@Param("team") Team team);
+
 }
 
