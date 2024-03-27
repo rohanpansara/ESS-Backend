@@ -1,14 +1,7 @@
 package com.employeselfservice.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -26,6 +19,10 @@ import java.time.LocalDateTime;
 @Table(name = "notifications")
 public class Notifications {
 
+    public enum NotificationType{
+        WORK,HR,OFFICE_EVENT,UPDATES
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "n_id")
@@ -41,5 +38,9 @@ public class Notifications {
 
     @Column(name = "n_created_at")
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "n_type")
+    private Notifications.NotificationType type;
 
 }
