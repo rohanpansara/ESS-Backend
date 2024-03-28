@@ -33,7 +33,6 @@ public class DashboardController {
     @Autowired
     private AttendanceService attendanceService;
 
-
     @GetMapping("/admin/allEmployees")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse> userProfile() {
@@ -56,7 +55,7 @@ public class DashboardController {
         ApiResponse apiResponse = new ApiResponse();
         try {
             Employee employee = employeeService.findEmployeeById(Long.parseLong(employeeId));
-            if (employee!=null) {
+            if (employee != null) {
                 apiResponse.setSuccess(true);
                 apiResponse.setData(employee);
                 return ResponseEntity.ok(apiResponse);
