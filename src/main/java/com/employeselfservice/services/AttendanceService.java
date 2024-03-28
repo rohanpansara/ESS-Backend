@@ -71,7 +71,7 @@ public class AttendanceService {
         return attendanceRepository.save(attendance);
     }
 
-    public List<Attendance> getAttendanceForEmployee(Long employeeId) {
+    public List<Attendance> getAttendanceWhereEmployeeIsPR(Long employeeId) {
         List<Attendance> allAttendances = attendanceRepository.findByEmployeeId(employeeId);
         List<Attendance> filteredAttendances = new ArrayList<>();
 
@@ -102,14 +102,7 @@ public class AttendanceService {
         return filteredAttendances;
     }
 
-    public Map<String,Object> getAttendanceMaterial(Employee employee){
-        Map<String, Object> attendanceMaterial = new HashMap<>();
-
-        attendanceMaterial.put("PunchIns",punchInService.getAllPunchInsForEmployeeForToday(employee));
-        attendanceMaterial.put("PunchOuts", punchOutService.getAllPunchOutsForEmployeeForToday(employee));
-        attendanceMaterial.put("FirstPunchIn", punchInRepository.findFirstByEmployeeOrderByPunchInTimeAsc(employee).getPunchInTime());
-        attendanceMaterial.put("LastPunchOut", punchOutRepository.findFirstByEmployeeOrderByPunchOutTimeDesc(employee).getPunchOutTime());
-        attendanceMaterial.put("WorkHours", attendanceRepository.findByEmployeeId(employee.getId()));
-        return attendanceMaterial;
+    public List<Attendance> findAllByEmployeeId(Long id){
+        return attendanceRepository.findByEmployeeId(id);
     }
 }
