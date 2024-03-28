@@ -1,7 +1,5 @@
 package com.employeselfservice.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +11,6 @@ import lombok.Setter;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -25,6 +22,10 @@ import java.util.List;
 @Entity
 @Table(name = "attendance")
 public class Attendance {
+
+    public enum AttendanceStatus{
+        PR,AB
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,8 +42,22 @@ public class Attendance {
     @Column(name = "a_work_hours")
     private String workHours;
 
+    @Column(name = "a_first_punch")
+    private LocalDateTime firstPunchIn;
+
+    @Column(name = "a_last_punch")
+    private LocalDateTime lastPunchOut;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "a_first_half")
+    private AttendanceStatus firstHalf;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "a_second_half")
+    private AttendanceStatus secondHalf;
+
     @Column(name = "a_final_punch_out_time")
-    private String finalPunchOutTime;
+    private String canLeaveByTime;
 
     public void calculateWorkHours(List<PunchIn> punchIns, List<PunchOut> punchOuts) {
         Duration totalWorkHours = Duration.ZERO;
@@ -52,11 +67,18 @@ public class Attendance {
             LocalDateTime punchInTime = punchIns.get(i).getPunchInTime();
             LocalDateTime punchOutTime;
 
+            System.out.println(punchIns);
+            System.out.println(punchOuts);
+
             // if the employee haven't officially punched out yet
             if (i < punchOutsSize) {
                 punchOutTime = punchOuts.get(i).getPunchOutTime();
+                this.setFirstPunchIn(punchIns.get(0).getPunchInTime());
+                this.setLastPunchOut(punchOuts.get(punchOuts.size()-1).getPunchOutTime());
             } else {
                 punchOutTime = LocalDateTime.now();
+                this.setFirstPunchIn(punchIns.get(0).getPunchInTime());
+                this.setLastPunchOut(null);
             }
 
             Duration workDuration = Duration.between(punchInTime, punchOutTime);
@@ -75,6 +97,18 @@ public class Attendance {
         this.workHours = String.format("%02d:%02d", hours, minutes);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
-        this.finalPunchOutTime = finalPunchOutDateTime.format(formatter);
+        this.canLeaveByTime = finalPunchOutDateTime.format(formatter);
+
+        // Update firstHalf and secondHalf status
+        if (hours >= 3 && hours <= 7) {
+            this.firstHalf = AttendanceStatus.PR;
+            this.secondHalf = AttendanceStatus.AB;
+        } else if (hours >= 7 && minutes>=30) {
+            this.firstHalf = AttendanceStatus.PR;
+            this.secondHalf = AttendanceStatus.PR;
+        } else {
+            this.firstHalf = AttendanceStatus.AB;
+            this.secondHalf = AttendanceStatus.AB;
+        }
     }
 }
