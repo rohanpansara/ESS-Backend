@@ -1,7 +1,5 @@
 package com.employeselfservice.controllers;
 
-import com.employeselfservice.JWT.services.JWTService;
-import com.employeselfservice.dao.request.LeaveRequest;
 import com.employeselfservice.dao.response.ApiResponse;
 import com.employeselfservice.models.Employee;
 import com.employeselfservice.models.Attendance;
@@ -15,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -82,6 +79,7 @@ public class DashboardController {
     @GetMapping("/user/attendance")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse> calculateAttendance(@RequestParam long id) {
+        System.out.println(LocalDate.now());
         try {
             Attendance calculatedAttendance = attendanceService.calculateAttendance(id, LocalDate.now());
             if (calculatedAttendance != null) {
